@@ -1,0 +1,39 @@
+{
+  "name": "status-page",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Public, independent status page for Footics (reads the BetterStack API).",
+  "homepage": "https://status.footics.app",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Footics/status-page.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Footics/status-page/issues"
+  },
+  "author": "Tom Cardoen",
+  "license": "MIT",
+  "keywords": [
+    "status-page",
+    "uptime",
+    "betterstack",
+    "nextjs",
+    "footics"
+  ],
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "next": "16.2.6",
+    "react": "19.2.4",
+    "react-dom": "19.2.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "typescript": "^5"
+  }
+}
