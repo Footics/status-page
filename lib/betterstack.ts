@@ -44,7 +44,7 @@ function toState(status: string | undefined): ServiceState {
 
 type BsResource = {
   id: string;
-  attributes?: { url?: string; status?: string; created_at?: string; started_at?: string; resolved_at?: string };
+  attributes?: { url?: string; name?: string; status?: string; created_at?: string; started_at?: string; resolved_at?: string };
   relationships?: Record<string, { data?: { id?: string | number } | { id?: string | number }[] }>;
 };
 
@@ -129,14 +129,20 @@ export async function getStatus(): Promise<StatusPayload> {
     ]);
     const incidents = parseIncidents(incidentsRaw);
 
-    const sante = monitors.find((m) => (m.attributes?.url ?? "").includes("/api/health"));
-    const site = monitors.find((m) => m !== sante && !(m.attributes?.url ?? "").includes("/api/"));
-    const veilleur = heartbeats[0];
+    // Mapping EXPLICITE (chaque service = une sonde précise). Plus de devinette
+    // par bout d'URL : depuis la migration VPS il y a plusieurs sondes proches
+    // (api/healthz, auth/v1/health, status…) que l'heuristique confondait.
+    const monExact = (u: string) => monitors.find((m) => (m.attributes?.url ?? "").replace(/\/$/, "") === u);
+    const mon = (frag: string) => monitors.find((m) => (m.attributes?.url ?? "").includes(frag));
+    const hb = (frag: string) => heartbeats.find((h) => (h.attributes?.name ?? "").includes(frag));
 
     const defs = [
-      { key: "web", label: "Le site", desc: "L'accès à footics.app", res: site },
-      { key: "api", label: "API & base de données", desc: "Le backend et la base (comptes, pronos, scores)", res: sante },
-      { key: "veilleur", label: "Le Veilleur", desc: "Le suivi des matchs en direct", res: veilleur },
+      { key: "web", label: "Le site", desc: "L'accès à footics.app", res: monExact("https://footics.app") },
+      { key: "api", label: "L'API", desc: "Le moteur : scores en direct et calcul des points", res: mon("api.footics.app/healthz") },
+      { key: "auth", label: "L'authentification", desc: "La connexion et les comptes", res: mon("auth/v1/health") },
+      { key: "db", label: "La base de données", desc: "Le stockage : comptes, pronos, classements", res: hb("Base de données") },
+      { key: "mcp", label: "Le connecteur IA (MCP)", desc: "Le pont entre ton assistant IA et tes pronos", res: mon("mcp.footics.app") },
+      { key: "veilleur", label: "Le Veilleur", desc: "Le suivi des matchs en direct", res: hb("Veilleur") },
     ];
 
     const services: Service[] = defs.map((d) => {
